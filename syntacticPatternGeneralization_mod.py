@@ -50,17 +50,19 @@ def registersupport(syncloudwithsupport, syncloud, activesyn, syn, supp):
 #sup is set of tuples. tuples size will be equal to no. of entity in pattern
 def gensyngen(pats, poscloud, supps):
     """A function to do syntactic pattern generalization.
+
     Parameters
     ----------
     pats : List of patterns.
     poscloud : POS support of patterns
+
     """
     syncloud = dict()
     activesyn = dict()
     syncloudwithsupport = dict()
     #ghanta = 0
     for p in range(len(pats)):
-        print(pats[p])
+
         patstr = pats[p]
         pat = patstr.split(" ")
         poss = poscloud[patstr]
@@ -81,20 +83,21 @@ def gensyngen(pats, poscloud, supps):
         registersupport(syncloudwithsupport, syncloud, activesyn, patstr, supps[patstr])
         syn = copy.deepcopy(patstr)
         for entity in ets:
-            entity_string='<'+str(entity)+'>'
-            syn = syn.replace(entity_string, "<ENTITY>")
-        # syn = syn.replace("<DISEASE>", "<ENTITY>")
-        # syn = syn.replace("<GENE>", "<ENTITY>")
+            print(syn)
+            syn = syn.replace("<"+entity+">", "<ENTITY>")
+            print(syn)
+        # syn = syn.replace("<TARGET>", "<ENTITY>")
+        #syn = syn.replace("<GENE>", "<ENTITY>")
         registersupport(syncloudwithsupport, syncloud, activesyn, syn, supps[patstr])
 
         #ngram contraction
         Nngram = list()
-        entity_types = ['<'+ str(entity)+'>' for entity in ets]
         for i in range(len(pat)):
-            if pat[i] in entity_types or pat[i] == "*":
-                pass
-            else:
-                Nngram.append(i)
+            for entity in ets:
+                if pat[i]== ("<"+entity+">") or pat[i] == "*":
+                    pass
+                else:
+                    Nngram.append(i)
         try:
             assert len(Nngram)%3 == 0
         except AssertionError:
@@ -108,17 +111,16 @@ def gensyngen(pats, poscloud, supps):
                 if (i == ing+1) or (i== ing + 2):
                     pass
                 elif i == ing:
-                    if len(pat) > i+3:
-                        if pat[i+3] != "*"  or pat[i-1] != "*":
-                            tok.append("*")
+                    if pat[i+3] != "*"  or pat[i-1] != "*":
+                        tok.append("*")
                 else:
                     tok.append(pat[i])
             syn = ' '.join(tok)
             syn = syn.replace(" * * "," * ")
             registersupport(syncloudwithsupport, syncloud, activesyn, syn, supps[patstr])
             for entity in ets:
-                entity_string='<'+str(entity)+'>'
-                syn = syn.replace(entity_string, "<ENTITY>")
+                syn = syn.replace("<"+entity+">", "<ENTITY>")
+            #syn = syn.replace("<GENE>", "<ENTITY>")
             registersupport(syncloudwithsupport, syncloud, activesyn, syn, supps[patstr])
 
         lenpos = 0
@@ -139,17 +141,16 @@ def gensyngen(pats, poscloud, supps):
                 registersupport(syncloudwithsupport, syncloud, activesyn, syn, supps[patstr])
 
                 ptemp[ipos] = poss[ipos]
-                syn = ' '.join(ptemp)
                 for entity in ets:
-                    entity_string='<'+str(entity)+'>'
-                    syn = syn.replace(entity_string, "<ENTITY>")
+                    syn = syn.replace("<"+entity+">", "<ENTITY>")
+                #syn = syn.replace("<GENE>", "<ENTITY>")
                 registersupport(syncloudwithsupport, syncloud, activesyn, syn, supps[patstr])
 
                 ptemp[ipos] = "[WORD]"
                 syn = ' '.join(ptemp)
                 for entity in ets:
-                    entity_string='<'+str(entity)+'>'
-                    syn = syn.replace(entity_string, "<ENTITY>")
+                    syn = syn.replace("<"+entity+">", "<ENTITY>")
+                #syn = syn.replace("<GENE>", "<ENTITY>")
                 registersupport(syncloudwithsupport, syncloud, activesyn, syn, supps[patstr])
 
 

@@ -14,7 +14,7 @@ from utils import *
 import pickle
 import math
 import scipy.stats as st
-
+from entity import ENTITY_TYPES as ets
 
 def generate_textual_patterns(corpus):
     """A method to generate textual patterns given the corpus.
@@ -32,6 +32,8 @@ def generate_textual_patterns(corpus):
     """
     textual_patterns = []
     for i, sentence in enumerate(corpus):
+        sys.stderr.write('Processing...{0:.3%}\r'.format(i/len(corpus)))
+        
         dep_parse = nlp(sentence)
         entity_length, entities = check_entities(sentence)
         try:
@@ -73,17 +75,14 @@ def write_textual_patterns_to_file(pattern_file, textual_patterns):
 
 def convert_textual_patterns_to_lower_case(pattern_file):
     """Converts patterns to lower case barring the entities.
-
     Parameters
     ----------
     pattern_file : type Path
         The file containing the textual patterns
-
     Returns
     -------
     type List
         Returns the list of textual patterns converted to lowercase.
-
     """
     textual_patterns = []
     with open(pattern_file, 'rb') as f:
@@ -94,11 +93,11 @@ def convert_textual_patterns_to_lower_case(pattern_file):
             if(len(w) <=2):
                 continue
             f = 0
-            if w[0].startswith("CHEMICAL_") or w[0].startswith("DISEASE_") or w[0].startswith("GENE_"):
+            if w[0].startswith(tuple([e+'_' for e in ets])):
                 pass
             else:
                 f = 1
-            if w[len(w)-1].startswith("CHEMICAL_") or w[len(w)-1].startswith("DISEASE_") or w[len(w)-1].startswith("GENE_"):
+            if w[len(w)-1].startswith(tuple([e+'_' for e in ets])):
                 pass
             else:
                 f = 1
@@ -106,7 +105,9 @@ def convert_textual_patterns_to_lower_case(pattern_file):
                 fl = 0
                 for ii in range(len(w)):
                     i = w[ii]
-                    fl = 1*("CHEMICAL_" in i) + 1*("DISEASE_" in i) + 1*("GENE_" in i)
+                    
+                    fl = sum([1* ((x+'_') in i) for x in ets])
+                    #fl = 1*("CHEMICAL_" in i) + 1*("DISEASE_" in i) + 1*("GENE_" in i)
                     if fl!=1:
                         w[ii]  = str.lower(i)
                     if fl > 1:

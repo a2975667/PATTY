@@ -1,38 +1,21 @@
-import re
-import networkx as nx
-import matplotlib
-import numpy as np
-import spacy
-import itertools as it
-import os
-nlp = spacy.load('en_core_web_sm')
 from collections import defaultdict
-import random
-import copy
-import sys
-from utils import *
-import pickle
-import math
-import scipy.stats as st
+from entity import ENTITY_TYPES as ets
 
 def generate_seqmining_dataset(patterns):
     """This function generates a sequence database to mine n-grams from.
-
     Parameters
     ----------
     patterns : List of Textual Patterns
-
     Returns
     -------
     type List of Sequences
-
     """
     smining_dataset = []
     for pattern in patterns:
         words = pattern.split(" ")
         temp = []
         for word in words:
-            if word.startswith("CHEMICAL_") or word.startswith("DISEASE_") or word.startswith("GENE_"):
+            if word.startswith(tuple([entity+'_' for entity in ets])):
                 if len(temp) != 0:
                     temp = ' '.join(temp)
                     smining_dataset.append(temp)

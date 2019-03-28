@@ -14,23 +14,21 @@ from utils import *
 import pickle
 import math
 import scipy.stats as st
+from entity import ENTITY_TYPES as ets
 
 #replacing non entity non frequent n gram by wildcard
 def generate_sol_patterns(patterns, ngrams):
     """A method to generate SOL patterns given the textual patterns and ngrams.
-
     Parameters
     ----------
     patterns : type List
         Textual Patterns
     ngrams : type List of tuples
         NGrams
-
     Returns
     -------
     type List
         Returns SOL Patterns
-
     """
     pos_patterns = []
     for pattern_index, pattern in enumerate(patterns):
@@ -38,7 +36,7 @@ def generate_sol_patterns(patterns, ngrams):
         line = []
         pos_line = []
         for word_index, word in enumerate(words):
-            if word.startswith("CHEMICAL_") or word.startswith("DISEASE_") or word.startswith("GENE_"):
+            if word.startswith(tuple([entity+'_' for entity in ets])):
                 line.append("<ENTITY>")
                 #pos_line.append("<ENTITY>")
             else:
@@ -71,7 +69,6 @@ def generate_sol_patterns(patterns, ngrams):
 #replacing non entity non frequent n gram by wildcard
 def generate_sol_pos_patterns(patterns, ngrams, post):
     """A method to generate SOL Patterns with POS tags.
-
     Parameters
     ----------
     patterns : type List
@@ -80,12 +77,10 @@ def generate_sol_pos_patterns(patterns, ngrams, post):
         NGrams
     post : type List
         POS Tag patterns
-
     Returns
     -------
     type List
         List of patterns with POS Tags
-
     """
     sol_pos_patterns = []
     for pattern_index, pattern in enumerate(patterns):
@@ -93,7 +88,7 @@ def generate_sol_pos_patterns(patterns, ngrams, post):
         line = []
         pos_line = []
         for word_index, word in enumerate(words):
-            if word.startswith("CHEMICAL_") or word.startswith("DISEASE_") or word.startswith("GENE_"):
+            if word.startswith(tuple([entity+'_' for entity in ets])):
                 line.append("<ENTITY>")
                 #pos_line.append("<ENTITY>")
             else:
@@ -129,19 +124,20 @@ def obtainpat(patlist):
     toks = patlist.split(" ")
     cnt = 0
     for w in toks:
-        if w.startswith("CHEMICAL"):
-            strpat.append("<CHEMICAL>")
-            entlist.append(w)
-        elif w.startswith("DISEASE"):
-            strpat.append("<DISEASE>")
-            entlist.append(w)
-        elif w.startswith("GENE"):
-            strpat.append("<GENE>")
-            entlist.append(w)
-        else:
+        flg = False
+        for entity in ets:
+            if flg:
+                break
+            if w.startswith(entity):
+                string = '<'+str(entity)+'>'
+                strpat.append(string)
+                entlist.append(w)
+                flg = True
+        if not flg:
             strpat.append(w)
             if w!="*":
                 cnt+=1
+
     try:
         assert cnt%3==0
     except AssertionError:

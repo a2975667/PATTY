@@ -16,8 +16,8 @@ import sys
 from utils import *
 import pickle
 import math
-
-
+import sys
+from entity import ENTITY_TYPES as ets
 
 def read_corpus(file):
     corpus = []
@@ -30,7 +30,7 @@ def read_corpus(file):
 
 #helper funtion to check entities
 def check_entities(sentence):
-    possible_entities = ["CHEMICAL_", "GENE_", "DISEASE_"]
+    possible_entities = list(ets)
     sentence_words = sentence.split(" ")
     total_present = 0
     entities_present = []
@@ -71,7 +71,8 @@ def detype(pat):
     words = pat.split(" ")
     strret = list()
     for w in words:
-        if w == "<CHEMICAL>" or w == "<DISEASE>" or w == "<GENE>":
+        entity_names = [('<'+entity+'>') for entity in ets]
+        if w in entity_names:
             strret.append("<ENTITY>")
         else:
             strret.append(w)

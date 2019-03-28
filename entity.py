@@ -1,0 +1,5 @@
+ENTITY_TYPES = [
+    'PERSON',
+    'ORGANIZATION',
+    'LOCATION'
+]
