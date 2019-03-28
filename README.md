@@ -1,6 +1,8 @@
 # PATTY
 This repository is an enhanced version from the forked library. It is an implementation from the publication [PATTY: A Taxonomy of Relational Patterns with Semantic Types](https://www.aclweb.org/anthology/D12-1104). This implementation can have slight modification from the original paper due to limited information disclosed and the results are not guaranteed. 
 
+The goal of PATTY is given a entity labed corpus, extract entity relationships and locate patterns of sentneces for future entity extraction usage.
+
 # Requirements
 PATTY requires python 3.5+ to run. All external libraries are specified within the requirements.txt file.
 ```
