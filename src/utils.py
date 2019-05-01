@@ -17,7 +17,9 @@ from utils import *
 import pickle
 import math
 import sys
-from entity import ENTITY_TYPES as ets
+#from entity import ENTITY_TYPES as ets
+from utils.entity_extractor import load_entity
+ets = load_entity()
 
 def read_corpus(file):
     corpus = []

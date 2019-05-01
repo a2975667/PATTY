@@ -14,7 +14,9 @@ from utils import *
 import pickle
 import math
 import scipy.stats as st
-from entity import ENTITY_TYPES as ets
+#from entity import ENTITY_TYPES as ets
+from entity_extractor import load_entity
+ets = load_entity()
 
 #pats, poscloud, suppcloud
 def registersupport(syncloudwithsupport, syncloud, activesyn, syn, supp):
