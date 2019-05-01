@@ -1,73 +1,116 @@
-import re
-import networkx as nx
-import matplotlib
-import numpy as np
-import spacy
-import itertools as it
-import os
-nlp = spacy.load('en_core_web_sm')
-from collections import defaultdict
-import random
-import copy
-import sys
-import pickle
 import math
-from utils import *
-import scipy.stats as st
-from dagConstruction import *
-from mineSubsumptions import *
-from ngramMining import *
-from prefixTreeConstruction import *
-from solPatternGeneration import *
-from syntacticPatternGeneralization import *
-from textualPatternGeneration import *
+import pickle
+import sys
+import copy
+import random
+from collections import defaultdict
+import os
+from utils.preprocess import preprocess
+from lib import textualPatternGeneration as tPG
+from lib import ngramMining as ngMine
+from lib import solPatternGeneration as sPG
+from lib.helper import generate_pos_tags_for_patterns as gen_pos
+from lib import syntacticPatternGeneralization as syntacticPG
+from utils import post_processing as pp
+from pprint import pprint
 
-print("Program Started...")
-params = {'data_dir': sys.argv[1], 'corpus_fn': sys.argv[2]}
-os.chdir(params['data_dir'])
+if __name__ == "__main__":
+    print("Program Started...")
+    params = {'data_dir': '/'.join(sys.argv[1].split('/')[:-1]), 'corpus_fn': sys.argv[1].split('/')[-1]}
+    os.chdir(params['data_dir'])
+    
+    #Input Data pre. 
+    corpus = preprocess(params)
+    #corpus.print_info()
+    
 
-print("Reading Corpus...")
-corpus = read_corpus(params['corpus_fn'])
+    print("Generating Textual Patterns")
+    tPG.generate_textual_patterns(corpus)
+    print("Done generating textual patterns.")
+    
+    print("Generating POS tags")
+    gen_pos(corpus)
+    print("Done generating POS tags.")
+    
 
-print("Generating Textual Patterns")
-textual_patterns = generate_textual_patterns(corpus)
+    print("Mining sequences")
+    ngMine.generate_seqmining_dataset(corpus)
+    ngMine.generate_frequent_ngrams(corpus, 2)
+    print("Done Mining sequences.")
 
-print("Done generating textual patterns")
+    
+    print("Mining sequences")
+    sPG.generate_sol_patterns(corpus)
+    #sPG.generate_sol_pos_patterns(corpus)
+    print("Done Mining sequences.")
 
-write_textual_patterns_to_file("file.txt", textual_patterns)
-textual_patterns = convert_textual_patterns_to_lower_case("file.txt")
-post = generate_pos_tags_for_patterns(textual_patterns, "TexPatPosTag.pkl")
-seqmining_dataset = generate_seqmining_dataset(textual_patterns)
-ngrams = generate_frequent_ngrams(seqmining_dataset, 5)
+    print("Calculating Support")
+    sPG.get_support_of_sols(corpus)
+    print("Done calculation.")
 
-sol_patterns = generate_sol_patterns(textual_patterns, ngrams)
-sol_pos_patterns = generate_sol_pos_patterns(textual_patterns, ngrams, post)
-with open('sp_spp.pkl', 'wb') as f:
-    pickle.dump([sol_patterns, sol_pos_patterns], f)
+    print("Final Calculation")
+    p_s_c, utc = syntacticPG.gensyngen(corpus)
+    final = pp.get_strength_confidence(p_s_c, utc, corpus)
+    
+    with open('final.txt', 'w') as f:
+        for key in final:
+            string = key + '\t'
+            string += str(final[key]['confidence']) + '\t'
+            string += str(final[key]['data'].sentence_id)
+            f.write(string+ '\n')
+    
+    # #lconfpat = sorted(conf_pat.items(), key=lambda x: (strength_pat[x[0]]), reverse = True)
+    # #pprint(final)
+    
+    
+    # # print(strength_pat)
+    # # print(conf_pat)
+    
+    # # 
+    
+    # # print("Complete")
+    # sys.exit()
+    # with open('pat_pos_supp.pkl', 'wb') as f:
+    #     pickle.dump([pats, poscloud, suppcloud], f)
 
-pats, poscloud, suppcloud = get_support_of_sols(sol_patterns, sol_pos_patterns)
-with open('pat_pos_supp.pkl', 'wb') as f:
-    pickle.dump([pats, poscloud, suppcloud], f)
+    # with open('strengthconf.pkl', 'wb') as f:
+    #     pickle.dump([strength_pat, conf_pat], f)
+    
 
-p_s_c, utc = gensyngen(pats, poscloud, suppcloud)
-with open('pscaftersec5.pkl', 'wb') as f:
-    pickle.dump([p_s_c, utc], f)
 
-strength_pat, conf_pat = get_strength_confidence(p_s_c, utc)
-with open('strengthconf.pkl', 'wb') as f:
-    pickle.dump([strength_pat, conf_pat], f)
+    
+    # from syntacticPatternGeneralization import *
+    # from solPatternGeneration import *
+    # from prefixTreeConstruction import *
+    # from ngramMining import *
+    # from mineSubsumptions import *
+    # from dagConstruction import *
+    # import utils
 
-lconfpat = sorted(conf_pat.items(), key=lambda x: (strength_pat[x[0]]), reverse = True)
-with open("lconfpat.pkl", "wb") as f:
-    pickle.dump(lconfpat, f)
+    # #post = generate_pos_tags_for_patterns(textual_patterns, "TexPatPosTag.pkl")
+    # # with open('sp_spp.pkl', 'wb') as f:
+    # #     pickle.dump([sol_patterns, sol_pos_patterns], f)
 
-l_p_l_s_c = convert_patterns_list(p_s_c)
-T, invertList = ConstructPrefixTree(l_p_l_s_c)
-SubSump, SubsumW = MineSubsumptions(T, l_p_l_s_c, invertList, 0)
-with open('subsumedgeandweight', 'wb') as f:
-    pickle.dump([SubSump, SubsumW], f)
 
-N = len(l_p_l_s_c)
-dag, caches = DAGcon(SubsumW, N)
-with open('dagcaches', 'wb') as f:
-    pickle.dump([dag, caches], f)
+    # p_s_c, utc = gensyngen(pats, poscloud, suppcloud)
+    # with open('pscaftersec5.pkl', 'wb') as f:
+    #     pickle.dump([p_s_c, utc], f)
+
+    # strength_pat, conf_pat = get_strength_confidence(p_s_c, utc, corpus)
+    # with open('strengthconf.pkl', 'wb') as f:
+    #     pickle.dump([strength_pat, conf_pat], f)
+
+    # lconfpat = sorted(conf_pat.items(), key=lambda x: (strength_pat[x[0]]), reverse = True)
+    # with open("lconfpat.pkl", "wb") as f:
+    #     pickle.dump(lconfpat, f)
+
+    # # l_p_l_s_c = convert_patterns_list(p_s_c)
+    # # T, invertList = ConstructPrefixTree(l_p_l_s_c)
+    # # SubSump, SubsumW = MineSubsumptions(T, l_p_l_s_c, invertList, 0)
+    # # with open('subsumedgeandweight', 'wb') as f:
+    # #     pickle.dump([SubSump, SubsumW], f)
+
+    # # N = len(l_p_l_s_c)
+    # # dag, caches = DAGcon(SubsumW, N)
+    # # with open('dagcaches', 'wb') as f:
+    # #     pickle.dump([dag, caches], f)
